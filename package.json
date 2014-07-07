@@ -1,0 +1,36 @@
+{
+  "name": "duplexify",
+  "version": "0.0.0",
+  "description": "Similar to duplexer2 except it supports both streams2 and streams1 as input and it allows you to set the readable and writable part asynchroniously",
+  "main": "index.js",
+  "dependencies": {
+    "end-of-stream": "0.1.5"
+  },
+  "devDependencies": {
+    "concat-stream": "^1.4.6",
+    "tape": "^2.13.3",
+    "through2": "^0.5.1"
+  },
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mafintosh/duplexify"
+  },
+  "keywords": [
+    "duplex",
+    "streams2",
+    "streams",
+    "stream",
+    "writable",
+    "readable",
+    "async"
+  ],
+  "author": "Mathias Buus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mafintosh/duplexify/issues"
+  },
+  "homepage": "https://github.com/mafintosh/duplexify"
+}
