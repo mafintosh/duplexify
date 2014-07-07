@@ -37,6 +37,10 @@ Duplexify.prototype.setReadable = function(readable) {
     if (readable.destroy) readable.destroy()
     return
   }
+  if (readable === null) {
+    this.push(null)
+    return
+  }
 
   var self = this
   var onreadable = function() {
@@ -59,6 +63,10 @@ Duplexify.prototype.setReadable = function(readable) {
 Duplexify.prototype.setWritable = function(writable) {
   if (this.destroyed) {
     if (writable.destroy) writable.destroy()
+    return
+  }
+  if (writable === null) {
+    stream.Writable.prototype.end.call(this)
     return
   }
 
