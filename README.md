@@ -9,6 +9,8 @@ and it allows you to set the readable and writable part asynchroniously using `s
 npm install duplexify
 ```
 
+[![build status](http://img.shields.io/travis/mafintosh/duplexify.svg?style=flat)](http://travis-ci.org/mafintosh/duplexify)
+
 ## Usage
 
 Use `duplexify(writable, readable, streamOptions)` (or `duplexify.obj(writable, readable)` to create an object stream)
