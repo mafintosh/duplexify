@@ -1,6 +1,6 @@
 {
   "name": "duplexify",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Similar to duplexer2 except it supports both streams2 and streams1 as input and it allows you to set the readable and writable part asynchroniously",
   "main": "index.js",
   "dependencies": {
