@@ -14,6 +14,7 @@ var Duplexify = function(writable, readable, opts) {
   stream.Duplex.call(this, opts)
 
   this.destroyed = false
+  this._destroy = !opts || opts.destroy !== false
 
   this._writable = null
   this._readable = null
@@ -99,8 +100,10 @@ Duplexify.prototype.destroy = function(err) {
     else this.emit('error', err)
   }
 
-  if (this._readable && this._readable.destroy) this._readable.destroy()
-  if (this._writable && this._writable.destroy) this._writable.destroy()
+  if (this._destroy) {
+    if (this._readable && this._readable.destroy) this._readable.destroy()
+    if (this._writable && this._writable.destroy) this._writable.destroy()
+  }
 
   this.emit('close')
 }
@@ -178,6 +181,9 @@ module.exports = function(writable, readable, opts) {
   return new Duplexify(writable, readable, opts)
 }
 
-module.exports.obj = function(writable, readable) {
-  return new Duplexify(writable, readable, {objectMode:true, highWaterMark:16})
+module.exports.obj = function(writable, readable, opts) {
+  if (!opts) opts = {}
+  opts.objectMode = true
+  opts.highWaterMark = 16
+  return new Duplexify(writable, readable, opts)
 }
