@@ -2,6 +2,8 @@ var eos = require('end-of-stream')
 var stream = require('stream')
 var util = require('util')
 
+var noop = function() {}
+
 var onclose = function(self) {
   return function(err) {
     if (err) self.destroy(err.message === 'premature close' ? null : err)
@@ -66,7 +68,7 @@ Duplexify.prototype.setWritable = function(writable) {
     return
   }
   if (writable === null) {
-    stream.Writable.prototype.end.call(this)
+    this._finish(noop)
     return
   }
 
@@ -108,6 +110,15 @@ Duplexify.prototype._read = function() {
   this._forward()
 }
 
+Duplexify.prototype._finish = function() {
+  var self = this
+  var end = function() {
+    stream.Writable.prototype.end.call(self)
+  }
+
+  if (!this.emit('prefinish', end)) end()
+}
+
 Duplexify.prototype._forward = function() {
   if (this._forwarding || !this._readable2 || !this._drained) return
   this._forwarding = true
@@ -139,7 +150,7 @@ Duplexify.prototype.end = function(data, enc, cb) {
 
   var self = this
   var end = function() {
-    stream.Writable.prototype.end.call(self, cb)
+    self._finish(cb)
   }
 
   if (!this._writable._writableState) {
