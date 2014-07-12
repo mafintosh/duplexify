@@ -113,10 +113,10 @@ Duplexify.prototype._read = function() {
   this._forward()
 }
 
-Duplexify.prototype._finish = function() {
+Duplexify.prototype._finish = function(cb) {
   var self = this
   var end = function() {
-    stream.Writable.prototype.end.call(self)
+    stream.Writable.prototype.end.call(self, cb)
   }
 
   if (!this.emit('prefinish', end)) end()
