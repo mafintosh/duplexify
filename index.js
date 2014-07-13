@@ -48,7 +48,7 @@ Duplexify.prototype.setReadable = function(readable) {
     if (readable.destroy) readable.destroy()
     return
   }
-  if (readable === null) {
+  if (readable === null || readable === false) {
     this.push(null)
     return
   }
@@ -76,7 +76,7 @@ Duplexify.prototype.setWritable = function(writable) {
     if (writable.destroy) writable.destroy()
     return
   }
-  if (writable === null) {
+  if (writable === null || writable === false) {
     this._finish(noop)
     return
   }
