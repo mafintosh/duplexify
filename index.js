@@ -11,6 +11,7 @@ var onclose = function(self) {
 }
 
 var Duplexify = function(writable, readable, opts) {
+  if (!(this instanceof Duplexify)) return new Duplexify(writable, readable, opts)
   stream.Duplex.call(this, opts)
 
   this.destroyed = false
@@ -34,6 +35,13 @@ var Duplexify = function(writable, readable, opts) {
 }
 
 util.inherits(Duplexify, stream.Duplex)
+
+Duplexify.obj = function(writable, readable, opts) {
+  if (!opts) opts = {}
+  opts.objectMode = true
+  opts.highWaterMark = 16
+  return new Duplexify(writable, readable, opts)
+}
 
 Duplexify.prototype.setReadable = function(readable) {
   if (this.destroyed) {
@@ -177,13 +185,4 @@ Duplexify.prototype._write = function(data, enc, cb) {
   else cb()
 }
 
-module.exports = function(writable, readable, opts) {
-  return new Duplexify(writable, readable, opts)
-}
-
-module.exports.obj = function(writable, readable, opts) {
-  if (!opts) opts = {}
-  opts.objectMode = true
-  opts.highWaterMark = 16
-  return new Duplexify(writable, readable, opts)
-}
+module.exports = Duplexify
