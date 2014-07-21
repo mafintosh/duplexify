@@ -86,7 +86,7 @@ Duplexify.prototype.setWritable = function(writable) {
   var ondrain = function() {
     var ondrain = self._ondrain
     self._ondrain = null
-    ondrain()
+    if (ondrain) ondrain()
   }
 
   this._writable = writable
