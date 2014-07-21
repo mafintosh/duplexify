@@ -61,6 +61,7 @@ Duplexify.prototype.setReadable = function(readable) {
     self.push(null)
   }
 
+  this._drained = true
   this._readable = readable
   this._readable2 = typeof readable.read === 'function' ? readable : new (stream.Readable)().wrap(readable)
   this._readable2.on('readable', onreadable)
