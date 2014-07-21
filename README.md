@@ -42,6 +42,8 @@ dup.setReadable(readableStream)
 dup.setWritable(writableStream)
 ```
 
+If you call `setReadable` or `setWritable` multiple times it will unregister the previous readable/writable stream.
+
 If the readable or writable streams emits an error or close it will destroy both streams and bubble up the event.
 You can also explictly destroy the streams by calling `dup.destroy()`
 
