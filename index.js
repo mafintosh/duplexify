@@ -111,7 +111,7 @@ Duplexify.prototype.setWritable = function(writable) {
   this._writable = writable
   this._writable.on('drain', ondrain)
   this._writableClear = clear
-  ondrain()
+  if (self._ondrain) process.nextTick(ondrain) // force a drain too avoid livelocks
 
   if (this._writeArguments) this._write.apply(this, this._writeArguments)
   if (this._endArguments) this.end.apply(this, this._endArguments)
