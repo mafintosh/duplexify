@@ -151,3 +151,31 @@ tape('bubble write errors', function(t) {
   write.emit('error', new Error('write-error'))
   read.emit('error', new Error('read-error')) // only emit first error
 })
+
+tape('reset writable / readable', function(t) {
+  t.plan(3)
+
+  var toUpperCase = function(data, enc, cb) {
+    cb(null, data.toString().toUpperCase())
+  }
+
+  var passthrough = through()
+  var upper = through(toUpperCase)
+  var dup = duplexify(passthrough, passthrough)
+
+  dup.once('data', function(data) {
+    t.same(data.toString(), 'hello')
+    dup.setWritable(upper)
+    dup.setReadable(upper)
+    dup.once('data', function(data) {
+      t.same(data.toString(), 'HELLO')
+      dup.once('data', function(data) {
+        t.same(data.toString(), 'HI')
+        t.end()
+      })
+    })
+    dup.write('hello')
+    dup.write('hi')
+  })
+  dup.write('hello')
+})

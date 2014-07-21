@@ -44,6 +44,8 @@ Duplexify.obj = function(writable, readable, opts) {
 }
 
 Duplexify.prototype.setReadable = function(readable) {
+  this._readableClear()
+
   if (this.destroyed) {
     if (readable.destroy) readable.destroy()
     return
@@ -54,11 +56,20 @@ Duplexify.prototype.setReadable = function(readable) {
   }
 
   var self = this
+  var unend = eos(readable, {writable:false, readable:true}, this._onclose)
+
   var onreadable = function() {
     self._forward()
   }
+
   var onend = function() {
     self.push(null)
+  }
+
+  var clear = function() {
+    self._readable2.removeListener('readable', onreadable)
+    self._readable2.removeListener('end', onend)
+    unend()
   }
 
   this._drained = true
@@ -66,13 +77,14 @@ Duplexify.prototype.setReadable = function(readable) {
   this._readable2 = typeof readable.read === 'function' ? readable : new (stream.Readable)().wrap(readable)
   this._readable2.on('readable', onreadable)
   this._readable2.on('end', onend)
-
-  eos(readable, {writable:false, readable:true}, this._onclose)
+  this._readableClear = clear
 
   this._forward()
 }
 
 Duplexify.prototype.setWritable = function(writable) {
+  this._writableClear()
+
   if (this.destroyed) {
     if (writable.destroy) writable.destroy()
     return
@@ -83,16 +95,23 @@ Duplexify.prototype.setWritable = function(writable) {
   }
 
   var self = this
+  var unend = eos(writable, {writable:true, readable:false}, this._onclose)
+
   var ondrain = function() {
     var ondrain = self._ondrain
     self._ondrain = null
     if (ondrain) ondrain()
   }
 
+  var clear = function() {
+    self._writable.removeListener('drain', ondrain)
+    unend()
+  }
+
   this._writable = writable
   this._writable.on('drain', ondrain)
-
-  eos(writable, {writable:true, readable:false}, this._onclose)
+  this._writableClear = clear
+  ondrain()
 
   if (this._writeArguments) this._write.apply(this, this._writeArguments)
   if (this._endArguments) this.end.apply(this, this._endArguments)
@@ -185,5 +204,7 @@ Duplexify.prototype._write = function(data, enc, cb) {
   if (this._writable.write(data) === false) this._ondrain = cb
   else cb()
 }
+
+Duplexify.prototype._readableClear = Duplexify.prototype._writableClear = noop
 
 module.exports = Duplexify

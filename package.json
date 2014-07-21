@@ -4,7 +4,7 @@
   "description": "Turn a writeable and readable stream into a streams2 duplex stream with support for async initialization and streams1/streams2 input",
   "main": "index.js",
   "dependencies": {
-    "end-of-stream": "0.1.5"
+    "end-of-stream": "1.0.0"
   },
   "devDependencies": {
     "concat-stream": "^1.4.6",
