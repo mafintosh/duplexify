@@ -4,6 +4,8 @@ var util = require('util')
 
 var noop = function() {}
 
+var TEST_BUFFER_PLEASE_IGNORE = new Buffer(0)
+
 var onclose = function(self) {
   return function(err) {
     if (err) self.destroy(err.message === 'premature close' ? null : err)
@@ -177,20 +179,28 @@ Duplexify.prototype.end = function(data, enc, cb) {
     enc = null
   }
 
-  if (data) this._writable.write(data)
+  if (data) this.write(data)
+  if (!cb) cb = noop
 
   var self = this
   var end = function() {
     self._finish(cb)
   }
 
-  if (!this._writable._writableState) {
-    self._writable.end()
-    end()
-    return
-  }
+  this._flush(function(err) {
+    if (err) return cb(err)
 
-  self._writable.end(end)
+    if (!self._writable._writableState) {
+      self._writable.end()
+      return end()
+    }
+
+    self._writable.end(end)
+  })
+}
+
+Duplexify.prototype._flush = function(cb) {
+  this.write(TEST_BUFFER_PLEASE_IGNORE, null, cb)
 }
 
 Duplexify.prototype._write = function(data, enc, cb) {
@@ -201,6 +211,7 @@ Duplexify.prototype._write = function(data, enc, cb) {
     return
   }
 
+  if (data === TEST_BUFFER_PLEASE_IGNORE) return cb()
   if (this._writable.write(data) === false) this._ondrain = cb
   else cb()
 }

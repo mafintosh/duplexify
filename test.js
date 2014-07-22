@@ -18,6 +18,29 @@ tape('passthrough', function(t) {
   }))
 })
 
+tape('async passthrough + end', function(t) {
+  t.plan(2)
+
+  var pt = through.obj({highWaterMark:1}, function(data, enc, cb) {
+    setTimeout(function() {
+      cb(null, data)
+    }, 100)
+  })
+
+  var dup = duplexify(pt, pt)
+
+  dup.write('hello ')
+  dup.write('world')
+  dup.end()
+
+  dup.on('finish', function() {
+    t.ok(true, 'should finish')
+  })
+  dup.pipe(concat(function(data) {
+    t.same(data.toString(), 'hello world', 'same in as out')
+  }))
+})
+
 tape('duplex', function(t) {
   var readExpected = ['read-a', 'read-b', 'read-c']
   var writeExpected = ['write-a', 'write-b', 'write-c']
