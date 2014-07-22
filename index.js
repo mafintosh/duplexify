@@ -27,8 +27,8 @@ var Duplexify = function(writable, readable, opts) {
   this._endArguments = null
 
   this._forwarding = false
+  this._finishing = false
   this._drained = false
-  this._finished = false
   this._ondrain = null
   this._onclose = onclose(this)
 
@@ -92,7 +92,7 @@ Duplexify.prototype.setWritable = function(writable) {
     return
   }
   if (writable === null || writable === false) {
-    this._finish(noop)
+    this._finish()
     return
   }
 
@@ -144,10 +144,10 @@ Duplexify.prototype._read = function() {
   this._forward()
 }
 
-Duplexify.prototype._finish = function(cb) {
+Duplexify.prototype._finish = function() {
   var self = this
   var end = function() {
-    stream.Writable.prototype.end.call(self, cb)
+    stream.Writable.prototype.end.call(self)
   }
 
   if (!this.emit('prefinish', end)) end()
@@ -181,15 +181,22 @@ Duplexify.prototype.end = function(data, enc, cb) {
   }
 
   if (data) this.write(data)
-  if (!cb) cb = noop
+
+  if (cb) {
+    if (this._writableState.finished) cb()
+    else this.once('finish', cb)
+  }
+
+  if (this._finishing) return
+  this._finishing = true
 
   var self = this
   var end = function() {
-    self._finish(cb)
+    self._finish()
   }
 
   this._flush(function(err) {
-    if (err) return cb(err)
+    if (err) return
 
     if (!self._writable._writableState) {
       self._writable.end()

@@ -18,6 +18,23 @@ tape('passthrough', function(t) {
   }))
 })
 
+tape('passthrough + double end', function(t) {
+  t.plan(2)
+
+  var pt = through()
+  var dup = duplexify(pt, pt)
+
+  dup.end('hello world')
+  dup.end()
+
+  dup.on('finish', function() {
+    t.ok(true, 'should finish')
+  })
+  dup.pipe(concat(function(data) {
+    t.same(data.toString(), 'hello world', 'same in as out')
+  }))
+})
+
 tape('async passthrough + end', function(t) {
   t.plan(2)
 
