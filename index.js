@@ -97,6 +97,7 @@ Duplexify.prototype.setWritable = function(writable) {
   }
 
   var self = this
+  var overriding = !!this._writable
   var unend = eos(writable, {writable:true, readable:false}, this._onclose)
 
   var ondrain = function() {
@@ -113,7 +114,7 @@ Duplexify.prototype.setWritable = function(writable) {
   this._writable = writable
   this._writable.on('drain', ondrain)
   this._writableClear = clear
-  if (self._ondrain) process.nextTick(ondrain) // force a drain too avoid livelocks
+  if (overriding) process.nextTick(ondrain) // force a drain too avoid livelocks
 
   if (this._writeArguments) this._write.apply(this, this._writeArguments)
   if (this._endArguments) this.end.apply(this, this._endArguments)
