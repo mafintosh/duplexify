@@ -16,6 +16,7 @@ var destroyer = function(self) {
 }
 
 var end = function(ws, fn) {
+  if (!ws) return fn()
   if (ws._writableState) return ws.end(fn)
   ws.end()
   fn()
@@ -176,6 +177,7 @@ Duplexify.prototype._write = function(data, enc, cb) {
   if (this.destroyed) return cb()
   if (this._corked) return onuncork(this, this._write.bind(this, data, enc, cb))
   if (data === SIGNAL_FLUSH) return this._finish(cb)
+  if (!this._writable) return cb()
 
   if (this._writable.write(data) === false) this._ondrain = cb
   else cb()
