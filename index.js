@@ -144,15 +144,6 @@ Duplexify.prototype._read = function() {
   this._forward()
 }
 
-Duplexify.prototype._finish = function() {
-  var self = this
-  var end = function() {
-    stream.Writable.prototype.end.call(self)
-  }
-
-  if (!this.emit('prefinish', end)) end()
-}
-
 Duplexify.prototype._forward = function() {
   if (this._forwarding || !this._readable2 || !this._drained) return
   this._forwarding = true
@@ -163,6 +154,17 @@ Duplexify.prototype._forward = function() {
   }
 
   this._forwarding = false
+}
+
+Duplexify.prototype._finish = function() {
+  var self = this
+  this._flush(function() {
+    stream.Writable.prototype.end.call(self)
+  })
+}
+
+Duplexify.prototype._flush = function(cb) {
+  cb()
 }
 
 Duplexify.prototype.end = function(data, enc, cb) {
@@ -191,24 +193,22 @@ Duplexify.prototype.end = function(data, enc, cb) {
   this._finishing = true
 
   var self = this
-  var end = function() {
+  var finish = function() {
     self._finish()
   }
 
-  this._flush(function(err) {
+  this.write(TEST_BUFFER_PLEASE_IGNORE, function(err) {
     if (err) return
+
+    self.emit('prefinish')
 
     if (!self._writable._writableState) {
       self._writable.end()
-      return end()
+      return finish()
     }
 
-    self._writable.end(end)
+    self._writable.end(finish)
   })
-}
-
-Duplexify.prototype._flush = function(cb) {
-  this.write(TEST_BUFFER_PLEASE_IGNORE, null, cb)
 }
 
 Duplexify.prototype._write = function(data, enc, cb) {
