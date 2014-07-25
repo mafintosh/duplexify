@@ -22,6 +22,10 @@ var end = function(ws, fn) {
   fn()
 }
 
+var toStreams2 = function(rs) {
+  return new (stream.Readable)({objectMode:true, highWaterMark:16}).wrap(rs)
+}
+
 var Duplexify = function(writable, readable, opts) {
   if (!(this instanceof Duplexify)) return new Duplexify(writable, readable, opts)
   stream.Duplex.call(this, opts)
@@ -129,7 +133,7 @@ Duplexify.prototype.setReadable = function(readable) {
 
   this._drained = true
   this._readable = readable
-  this._readable2 = readable._readableState ? readable : new (stream.Readable)().wrap(readable)
+  this._readable2 = readable._readableState ? readable : toStreams2(readable)
   this._readable2.on('readable', onreadable)
   this._readable2.on('end', onend)
   this._unread = clear
