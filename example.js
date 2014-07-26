@@ -3,7 +3,8 @@ var http = require('http')
 
 var request = function(opts) {
   var req = http.request(opts)
-  var dup = duplexify(req)
+  var dup = duplexify()
+  dup.setWritable(req)
   req.on('response', function(res) {
     dup.setReadable(res)
   })
