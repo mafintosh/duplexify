@@ -34,7 +34,7 @@ var Duplexify = function(writable, readable, opts) {
   this._readable = null
   this._readable2 = null
 
-  this._destroy = !opts || opts.destroy !== false
+  this._forwardDestroy = !opts || opts.destroy !== false
   this._corked = 1 // start corked
   this._ondrain = null
   this._drained = false
@@ -162,6 +162,13 @@ Duplexify.prototype.destroy = function(err) {
   if (this.destroyed) return
   this.destroyed = true
 
+  var self = this
+  process.nextTick(function() {
+    self._destroy(err)
+  })
+}
+
+Duplexify.prototype._destroy = function(err) {
   if (err) {
     var ondrain = this._ondrain
     this._ondrain = null
@@ -169,7 +176,7 @@ Duplexify.prototype.destroy = function(err) {
     else this.emit('error', err)
   }
 
-  if (this._destroy) {
+  if (this._forwardDestroy) {
     if (this._readable && this._readable.destroy) this._readable.destroy()
     if (this._writable && this._writable.destroy) this._writable.destroy()
   }
