@@ -18,6 +18,7 @@ var destroyer = function(self, end) {
 
 var end = function(ws, fn) {
   if (!ws) return fn()
+  if (ws._writableState && ws._writableState.finished) return fn()
   if (ws._writableState) return ws.end(fn)
   ws.end()
   fn()
