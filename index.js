@@ -9,9 +9,10 @@ var onuncork = function(self, fn) {
   else fn()
 }
 
-var destroyer = function(self) {
+var destroyer = function(self, end) {
   return function(err) {
     if (err) self.destroy(err.message === 'premature close' ? null : err)
+    else if (end && !self._ended) self.end()
   }
 }
 
@@ -41,6 +42,7 @@ var Duplexify = function(writable, readable, opts) {
   this._forwarding = false
   this._unwrite = null
   this._unread = null
+  this._ended = false
 
   this.destroyed = false
 
@@ -79,7 +81,7 @@ Duplexify.prototype.setWritable = function(writable) {
   }
 
   var self = this
-  var unend = eos(writable, {writable:true, readable:false}, destroyer(this))
+  var unend = eos(writable, {writable:true, readable:false}, destroyer(this, true))
 
   var ondrain = function() {
     var ondrain = self._ondrain
@@ -209,6 +211,7 @@ Duplexify.prototype._finish = function(cb) {
 Duplexify.prototype.end = function(data, enc, cb) {
   if (typeof data === 'function') return this.end(null, null, data)
   if (typeof enc === 'function') return this.end(data, null, enc)
+  this._ended = true
   if (data) this.write(data)
   if (!this._writableState.ending) this.write(SIGNAL_FLUSH)
   return stream.Writable.prototype.end.call(this, cb)
