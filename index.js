@@ -1,4 +1,4 @@
-var stream = require('stream')
+var stream = require('readable-stream')
 var eos = require('end-of-stream')
 var util = require('util')
 
