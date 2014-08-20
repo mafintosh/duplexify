@@ -238,3 +238,15 @@ tape('cork', function(t) {
   })
   dup.end()
 })
+
+tape('close', function(t) {
+  var passthrough = through()
+  var dup = duplexify(passthrough, passthrough)
+  var ok = false
+
+  passthrough.emit('close')
+  dup.on('close', function() {
+    t.ok(true, 'should forward close')
+    t.end()
+  })
+})
