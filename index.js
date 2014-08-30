@@ -114,6 +114,7 @@ Duplexify.prototype.setReadable = function(readable) {
 
   if (readable === null || readable === false) {
     this.push(null)
+    this.resume()
     return
   }
 
