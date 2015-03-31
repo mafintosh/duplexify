@@ -46,7 +46,8 @@ If you call `setReadable` or `setWritable` multiple times it will unregister the
 To disable the readable or writable part call `setReadable` or `setWritable` with `null`.
 
 If the readable or writable streams emits an error or close it will destroy both streams and bubble up the event.
-You can also explictly destroy the streams by calling `dup.destroy()`
+You can also explictly destroy the streams by calling `dup.destroy()`. The `destroy` method optionally takes an
+error object as argument, in which case the error is emitted as part of the `error` event.
 
 ``` js
 dup.on('error', function(err) {
