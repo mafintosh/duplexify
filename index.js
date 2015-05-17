@@ -156,7 +156,9 @@ Duplexify.prototype._forward = function() {
   this._forwarding = true
 
   var data
-  while ((data = this._readable2.read()) !== null) {
+  var state = this._readable2._readableState
+
+  while ((data = this._readable2.read(state.buffer.length ? state.buffer[0].length : state.length)) !== null) {
     this._drained = this.push(data)
   }
 
