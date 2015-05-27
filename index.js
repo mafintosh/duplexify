@@ -207,6 +207,8 @@ Duplexify.prototype._finish = function(cb) {
   this.emit('preend')
   onuncork(this, function() {
     end(self._forwardEnd && self._writable, function() {
+      // haxx to not emit prefinish twice
+      if (self._writableState.prefinished === false) self._writableState.prefinished = true
       self.emit('prefinish')
       onuncork(self, cb)
     })

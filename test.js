@@ -239,6 +239,23 @@ tape('cork', function(t) {
   dup.end()
 })
 
+tape('prefinish not twice', function(t) {
+  var passthrough = through()
+  var dup = duplexify(passthrough, passthrough)
+  var prefinished = false
+
+  dup.on('prefinish', function() {
+    t.ok(!prefinished, 'only prefinish once')
+    prefinished = true
+  })
+
+  dup.on('finish', function() {
+    t.end()
+  })
+
+  dup.end()
+})
+
 tape('close', function(t) {
   var passthrough = through()
   var dup = duplexify(passthrough, passthrough)
