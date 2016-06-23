@@ -3,6 +3,7 @@ var through = require('through2')
 var concat = require('concat-stream')
 var net = require('net')
 var duplexify = require('./')
+var tcp = require('net')
 
 tape('passthrough', function(t) {
   t.plan(2)
@@ -262,11 +263,12 @@ tape('close', function(t) {
   var dup = duplexify(passthrough, passthrough)
   var ok = false
 
-  passthrough.emit('close')
   dup.on('close', function() {
     t.ok(true, 'should forward close')
     t.end()
   })
+
+  passthrough.emit('close')
 })
 
 tape('works with node native streams (net)', function(t) {
@@ -289,4 +291,62 @@ tape('works with node native streams (net)', function(t) {
 
     dup.write(Buffer('hello world'))
   })
+})
+
+tape('close is bubbled up on both ends - destroy on listener', function(t) {
+  var listener
+  var counter = 0
+
+  listener = tcp.createServer(function(socket) {
+    var dup = duplexify(socket, socket)
+
+    socket.on('close', count)
+    dup.on('close', count)
+
+    dup.destroy()
+  })
+
+  listener.listen(0)
+
+  var socket = tcp.connect(listener.address())
+  var dup = duplexify(socket, socket)
+
+  socket.on('close', count)
+  dup.on('close', count)
+
+  function count() {
+    if (++counter === 4) {
+      return listener.close(t.end)
+    }
+  }
+})
+
+tape('close is bubbled up on both ends - destroy on dialer', function(t) {
+  var listener
+  var counter = 0
+
+  listener = tcp.createServer(function(socket) {
+    var dup = duplexify(socket, socket)
+
+    socket.on('close', count)
+    dup.on('close', count)
+  })
+
+  listener.listen(0)
+
+  var socket = tcp.connect(listener.address())
+  var dup = duplexify(socket, socket)
+
+  socket.on('close', count)
+  dup.on('close', count)
+
+  setTimeout(function () {
+    dup.destroy()
+  }, 100)
+
+  function count() {
+    if (++counter === 4) {
+      return listener.close(t.end)
+    }
+  }
 })
