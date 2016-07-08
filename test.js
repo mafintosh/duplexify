@@ -1,7 +1,7 @@
 var tape = require('tape')
 var through = require('through2')
 var concat = require('concat-stream')
-var tcp = require('net')
+var net = require('net')
 var duplexify = require('./')
 
 tape('passthrough', function(t) {
@@ -269,25 +269,24 @@ tape('close', function(t) {
   })
 })
 
-tape('works with node native streams (tcp)', function(t) {
-  var socket
+tape('works with node native streams (net)', function(t) {
   t.plan(1)
 
-  var listener = tcp.createServer(function(socket) {
+  var server = net.createServer(function(socket) {
     var dup = duplexify(socket, socket)
 
     dup.once('data', function(chunk) {
       t.same(chunk, Buffer('hello world'))
-      listener.close()
+      server.close()
       socket.end()
       t.end()
     })
   })
 
-  listener.listen(0)
+  server.listen(0, function () {
+    var socket = net.connect(server.address().port)
+    var dup = duplexify(socket, socket)
 
-  socket = tcp.connect(listener.address())
-  var dup = duplexify(socket, socket)
-
-  dup.write(Buffer('hello world'))
+    dup.write(Buffer('hello world'))
+  })
 })
