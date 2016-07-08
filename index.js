@@ -16,6 +16,20 @@ var destroyer = function(self, end) {
   }
 }
 
+var getStateLength = function(state) {
+  if (state.buffer.length) {
+    // Since node 6.3.0 state.buffer is a BufferList not an array
+    if (state.buffer.head) {
+      return state.buffer.head.data.length
+    }
+
+    return state.buffer[0].length
+  }
+
+  return state.length
+}
+
+
 var end = function(ws, fn) {
   if (!ws) return fn()
   if (ws._writableState && ws._writableState.finished) return fn()
@@ -46,6 +60,7 @@ var Duplexify = function(writable, readable, opts) {
   this._unread = null
   this._ended = false
 
+  this.closed = false
   this.destroyed = false
 
   if (writable) this.setWritable(writable)
@@ -130,6 +145,13 @@ Duplexify.prototype.setReadable = function(readable) {
     self.push(null)
   }
 
+  var onclose = function() {
+    if (!self.closed) {
+      self.closed = true
+      self.emit('close')
+    }
+  }
+
   var clear = function() {
     self._readable2.removeListener('readable', onreadable)
     self._readable2.removeListener('end', onend)
@@ -141,6 +163,7 @@ Duplexify.prototype.setReadable = function(readable) {
   this._readable2 = readable._readableState ? readable : toStreams2(readable)
   this._readable2.on('readable', onreadable)
   this._readable2.on('end', onend)
+  this._readable2.on('close', onclose)
   this._unread = clear
 
   this._forward()
@@ -157,8 +180,7 @@ Duplexify.prototype._forward = function() {
 
   var data
   var state = this._readable2._readableState
-
-  while ((data = this._readable2.read(state.buffer.length ? state.buffer[0].length : state.length)) !== null) {
+  while ((data = this._readable2.read(getStateLength(state))) !== null) {
     this._drained = this.push(data)
   }
 
@@ -188,7 +210,10 @@ Duplexify.prototype._destroy = function(err) {
     if (this._writable && this._writable.destroy) this._writable.destroy()
   }
 
-  this.emit('close')
+  if (!this.closed) {
+    this.closed = true
+    this.emit('close')
+  }
 }
 
 Duplexify.prototype._write = function(data, enc, cb) {
