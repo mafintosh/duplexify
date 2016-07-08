@@ -24,6 +24,19 @@ var end = function(ws, fn) {
   fn()
 }
 
+var getStateLength = function(state) {
+  if (state.buffer.length) {
+    // Since node 6.3.0 state.buffer is a BufferList not an array
+    if (state.buffer.head) {
+      return state.buffer.head.data.length
+    }
+
+    return state.buffer[0].length
+  }
+
+  return state.length
+}
+
 var toStreams2 = function(rs) {
   return new (stream.Readable)({objectMode:true, highWaterMark:16}).wrap(rs)
 }
@@ -158,7 +171,7 @@ Duplexify.prototype._forward = function() {
   var data
   var state = this._readable2._readableState
 
-  while ((data = this._readable2.read(state.buffer.length ? state.buffer[0].length : state.length)) !== null) {
+  while ((data = this._readable2.read(getStateLength(state))) !== null) {
     this._drained = this.push(data)
   }
 
