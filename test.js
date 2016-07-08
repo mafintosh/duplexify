@@ -301,9 +301,13 @@ tape('close is bubbled up on both ends - destroy on listener', function(t) {
 tape('close is bubbled up on both ends - destroy on dialer', function(t) {
   var listener
   var counter = 0
-
+  t.plan(2)
   listener = tcp.createServer(function(socket) {
     var dup = duplexify(socket, socket)
+
+    dup.once('data', function(chunk) {
+      t.same(chunk, Buffer('hello world'))
+    })
 
     socket.on('close', count)
     dup.on('close', count)
@@ -314,6 +318,8 @@ tape('close is bubbled up on both ends - destroy on dialer', function(t) {
   var socket = tcp.connect(listener.address())
   var dup = duplexify(socket, socket)
 
+  dup.write(Buffer('hello world'))
+
   socket.on('close', count)
   dup.on('close', count)
 
@@ -323,7 +329,9 @@ tape('close is bubbled up on both ends - destroy on dialer', function(t) {
 
   function count() {
     if (++counter === 4) {
-      return listener.close(t.end)
+      return listener.close(function() {
+        t.ok(true)
+      })
     }
   }
 })
