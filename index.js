@@ -1,6 +1,7 @@
 var stream = require('readable-stream')
 var eos = require('end-of-stream')
 var inherits = require('inherits')
+var shift = require('stream-shift')
 
 var SIGNAL_FLUSH = new Buffer([0])
 
@@ -22,19 +23,6 @@ var end = function(ws, fn) {
   if (ws._writableState) return ws.end(fn)
   ws.end()
   fn()
-}
-
-var getStateLength = function(state) {
-  if (state.buffer.length) {
-    // Since node 6.3.0 state.buffer is a BufferList not an array
-    if (state.buffer.head) {
-      return state.buffer.head.data.length
-    }
-
-    return state.buffer[0].length
-  }
-
-  return state.length
 }
 
 var toStreams2 = function(rs) {
@@ -169,9 +157,8 @@ Duplexify.prototype._forward = function() {
   this._forwarding = true
 
   var data
-  var state = this._readable2._readableState
 
-  while ((data = this._readable2.read(getStateLength(state))) !== null) {
+  while ((data = shift(this._readable2)) !== null) {
     this._drained = this.push(data)
   }
 
