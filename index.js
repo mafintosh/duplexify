@@ -159,6 +159,7 @@ Duplexify.prototype._forward = function() {
   var data
 
   while ((data = shift(this._readable2)) !== null) {
+    if (this.destroyed) continue
     this._drained = this.push(data)
   }
 
