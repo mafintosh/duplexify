@@ -131,9 +131,12 @@ Duplexify.prototype.setReadable = function(readable) {
     self.push(null)
   }
 
+  var onclose = this.emit.bind(this, 'error');
+
   var clear = function() {
     self._readable2.removeListener('readable', onreadable)
     self._readable2.removeListener('end', onend)
+    self._readable2.removeListener('close', onclose)
     unend()
   }
 
@@ -142,6 +145,7 @@ Duplexify.prototype.setReadable = function(readable) {
   this._readable2 = readable._readableState ? readable : toStreams2(readable)
   this._readable2.on('readable', onreadable)
   this._readable2.on('end', onend)
+  this._readable2.on('close', onclose)
   this._unread = clear
 
   this._forward()
