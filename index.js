@@ -183,7 +183,7 @@ Duplexify.prototype.destroy = function(err) {
 Duplexify.prototype._destroyInterval = function(err) {
   if (this.destroyed) return
   if (err.message !== 'premature close') return this.destroy(err)
-  this._forwardError = true
+  this._preferError = true
   this.destroy(null)
 }
 
