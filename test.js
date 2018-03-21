@@ -2,6 +2,7 @@ var tape = require('tape')
 var through = require('through2')
 var concat = require('concat-stream')
 var net = require('net')
+var Buffer = require('safe-buffer').Buffer
 var duplexify = require('./')
 
 tape('passthrough', function(t) {
@@ -275,7 +276,7 @@ tape('works with node native streams (net)', function(t) {
     var dup = duplexify(socket, socket)
 
     dup.once('data', function(chunk) {
-      t.same(chunk, Buffer('hello world'))
+      t.same(chunk, Buffer.from('hello world'))
       server.close()
       socket.end()
       t.end()
@@ -286,6 +287,6 @@ tape('works with node native streams (net)', function(t) {
     var socket = net.connect(server.address().port)
     var dup = duplexify(socket, socket)
 
-    dup.write(Buffer('hello world'))
+    dup.write(Buffer.from('hello world'))
   })
 })
