@@ -1,10 +1,11 @@
 var tape = require('tape')
 var through = require('through2')
 var concat = require('concat-stream')
+var TA = require('typedarray')
 var net = require('net')
 var duplexify = require('./')
 
-var HELLO_WORLD = (Buffer.from && Buffer.from !== Uint8Array.from)
+var HELLO_WORLD = (Buffer.from && Buffer.from !== TA.Uint8Array.from)
  ? Buffer.from('hello world')
  : new Buffer('hello world')
 
