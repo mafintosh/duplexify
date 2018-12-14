@@ -1,5 +1,5 @@
 var stream = require('readable-stream')
-var eos = require('end-of-stream')
+var eos = stream.finished
 var inherits = require('inherits')
 var shift = require('stream-shift')
 
