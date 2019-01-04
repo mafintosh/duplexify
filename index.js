@@ -189,21 +189,16 @@ Duplexify.prototype._destroy = function(err, cb) {
 Duplexify.prototype._write = function(data, enc, cb) {
   if (this.destroyed) return cb()
   if (this._corked) return onuncork(this, this._write.bind(this, data, enc, cb))
-  if (data === SIGNAL_FLUSH) return this._finish(cb)
   if (!this._writable) return cb()
 
   if (this._writable.write(data) === false) this._ondrain = cb
   else cb()
 }
 
-Duplexify.prototype._finish = function(cb) {
+Duplexify.prototype._final = function(cb) {
   var self = this
-  this.emit('preend')
   onuncork(this, function() {
     end(self._forwardEnd && self._writable, function() {
-      // haxx to not emit prefinish twice
-      if (self._writableState.prefinished === false) self._writableState.prefinished = true
-      self.emit('prefinish')
       onuncork(self, cb)
     })
   })
@@ -214,7 +209,7 @@ Duplexify.prototype.end = function(data, enc, cb) {
   if (typeof enc === 'function') return this.end(data, null, enc)
   this._ended = true
   if (data) this.write(data)
-  if (!this._writableState.ending) this.write(SIGNAL_FLUSH)
+  // if (!this._writableState.ending) this.write(SIGNAL_FLUSH)
   return stream.Writable.prototype.end.call(this, cb)
 }
 

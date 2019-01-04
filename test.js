@@ -230,17 +230,18 @@ tape('cork', function(t) {
   var dup = duplexify(passthrough, passthrough)
   var ok = false
 
-  dup.on('prefinish', function() {
-    dup.cork()
-    setTimeout(function() {
-      ok = true
-      dup.uncork()
-    }, 100)
-  })
+  dup.cork()
+
+  setTimeout(function() {
+    ok = true
+    dup.uncork()
+  }, 100)
+
   dup.on('finish', function() {
     t.ok(ok)
     t.end()
   })
+
   dup.end()
 })
 
