@@ -18,7 +18,7 @@ var autoDestroy = function (self, err) {
 
 var destroyer = function(self, end) {
   return function(err) {
-    if (err) autoDestroy(self, err.message === 'premature close' ? null : err)
+    if (err) autoDestroy(self, err.code === 'ERR_STREAM_PREMATURE_CLOSE' ? null : err)
     else if (end && !self._ended) self.end()
   }
 }
@@ -53,8 +53,6 @@ var Duplexify = function(writable, readable, opts) {
   this._unwrite = null
   this._unread = null
   this._ended = false
-
-  this.destroyed = false
 
   if (writable) this.setWritable(writable)
   if (readable) this.setReadable(readable)
@@ -173,22 +171,11 @@ Duplexify.prototype._forward = function() {
   this._forwarding = false
 }
 
-Duplexify.prototype.destroy = function(err) {
-  if (this.destroyed) return
-  this.destroyed = true
-
-  var self = this
-  process.nextTick(function() {
-    self._destroy(err)
-  })
-}
-
-Duplexify.prototype._destroy = function(err) {
+Duplexify.prototype._destroy = function(err, cb) {
   if (err) {
     var ondrain = this._ondrain
     this._ondrain = null
     if (ondrain) ondrain(err)
-    else this.emit('error', err)
   }
 
   if (this._forwardDestroy) {
@@ -196,7 +183,7 @@ Duplexify.prototype._destroy = function(err) {
     if (this._writable && this._writable.destroy) this._writable.destroy()
   }
 
-  this.emit('close')
+  cb(err)
 }
 
 Duplexify.prototype._write = function(data, enc, cb) {
