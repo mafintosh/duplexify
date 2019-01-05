@@ -172,12 +172,6 @@ Duplexify.prototype._forward = function() {
 }
 
 Duplexify.prototype._destroy = function(err, cb) {
-  if (err) {
-    var ondrain = this._ondrain
-    this._ondrain = null
-    if (ondrain) ondrain(err)
-  }
-
   if (this._forwardDestroy) {
     if (this._readable && this._readable.destroy) this._readable.destroy()
     if (this._writable && this._writable.destroy) this._writable.destroy()
