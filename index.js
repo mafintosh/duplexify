@@ -193,7 +193,7 @@ Duplexify.prototype._destroy = function(err) {
 
   if (this._forwardDestroy) {
     if (this._readable && this._readable.destroy) this._readable.destroy()
-    if (this._writable && this._writable.destroy) this._writable.destroy()
+    if (this._writable && this._writable.destroy) this._writable.end()
   }
 
   this.emit('close')

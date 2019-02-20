@@ -126,8 +126,8 @@ tape('destroy', function(t) {
   var read = through()
   var dup = duplexify(write, read)
 
-  write.destroy = function() {
-    t.ok(true, 'write destroyed')
+  write.end = function() {
+    t.ok(true, 'write ended')
   }
 
   dup.on('close', function() {
@@ -145,8 +145,8 @@ tape('destroy both', function(t) {
   var read = through()
   var dup = duplexify(write, read)
 
-  write.destroy = function() {
-    t.ok(true, 'write destroyed')
+  write.end = function() {
+    t.ok(true, 'write ended')
   }
 
   read.destroy = function() {
@@ -160,6 +160,22 @@ tape('destroy both', function(t) {
   dup.destroy()
   dup.destroy() // should only work once
 })
+
+tape('end writable stream when destroyed', function(t) {
+  t.plan(1)
+  t.timeoutAfter(5000)
+
+  var write = through()
+  var read = through()
+  var dup = duplexify(write, read)
+
+  write.end = function() {
+    t.ok(true, 'write ended')
+  }
+
+  dup.destroy()
+})
+
 
 tape('bubble read errors', function(t) {
   t.plan(2)
