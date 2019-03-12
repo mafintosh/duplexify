@@ -10,12 +10,14 @@
     "stream-shift": "^1.0.0"
   },
   "devDependencies": {
+    "@types/node": "^11.11.1",
     "concat-stream": "^1.5.2",
     "tape": "^4.0.0",
-    "through2": "^2.0.0"
+    "through2": "^2.0.0",
+    "tsd-check": "^0.3.0"
   },
   "scripts": {
-    "test": "tape test.js"
+    "test": "tape test.js && tsd-check"
   },
   "repository": {
     "type": "git",

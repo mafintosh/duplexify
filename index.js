@@ -232,3 +232,4 @@ Duplexify.prototype.end = function(data, enc, cb) {
 }
 
 module.exports = Duplexify
+module.exports.default = Duplexify;
