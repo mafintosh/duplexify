@@ -6,7 +6,7 @@ export interface DuplexifyOptions extends DuplexOptions {
   end?: boolean;
 }
 
-export class Duplexify extends Duplex {
+export interface Duplexify extends Duplex {
   readonly destroyed: boolean;
   setWritable(writable: Writable|false|null): void;
   setReadable(readable: Readable|false|null): void;
