@@ -1,4 +1,4 @@
-import {expectType} from 'tsd-check';
+import {expectType} from 'tsd';
 import {Readable, Writable} from 'stream';
 import duplexify, {Duplexify, DuplexifyOptions} from '.';
 

@@ -14,10 +14,10 @@
     "concat-stream": "^1.5.2",
     "tape": "^4.0.0",
     "through2": "^2.0.0",
-    "tsd-check": "^0.3.0"
+    "tsd": "^0.7.0"
   },
   "scripts": {
-    "test": "tape test.js && tsd-check"
+    "test": "tape test.js && tsd"
   },
   "repository": {
     "type": "git",
