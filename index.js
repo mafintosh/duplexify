@@ -200,13 +200,13 @@ Duplexify.prototype._destroy = function(err) {
 }
 
 Duplexify.prototype._write = function(data, enc, cb) {
-  if (this.destroyed) return cb()
+  if (this.destroyed) return
   if (this._corked) return onuncork(this, this._write.bind(this, data, enc, cb))
   if (data === SIGNAL_FLUSH) return this._finish(cb)
   if (!this._writable) return cb()
 
   if (this._writable.write(data) === false) this._ondrain = cb
-  else cb()
+  else if (!this.destroyed) cb()
 }
 
 Duplexify.prototype._finish = function(cb) {
