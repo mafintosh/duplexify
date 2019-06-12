@@ -336,3 +336,16 @@ tape('works with node native streams (net)', function(t) {
     dup.write(HELLO_WORLD)
   })
 })
+
+tape('destroy with a callback', function(t) {
+  t.plan(1)
+
+  var write = through()
+  var read = through()
+  var dup = duplexify(write, read)
+
+  var e = new Error('kaboom')
+  dup.destroy(e, function (err) {
+    t.strictEqual(err, e)
+  })
+})
