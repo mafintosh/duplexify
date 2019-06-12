@@ -173,22 +173,14 @@ Duplexify.prototype._forward = function() {
   this._forwarding = false
 }
 
-Duplexify.prototype.destroy = function(err) {
-  if (this.destroyed) return
-  this.destroyed = true
-
-  var self = this
-  process.nextTick(function() {
-    self._destroy(err)
-  })
-}
-
-Duplexify.prototype._destroy = function(err) {
+Duplexify.prototype._destroy = function(err, cb) {
   if (err) {
     var ondrain = this._ondrain
     this._ondrain = null
-    if (ondrain) ondrain(err)
-    else this.emit('error', err)
+    if (ondrain) {
+      ondrain(err)
+      err = null
+    }
   }
 
   if (this._forwardDestroy) {
@@ -196,7 +188,7 @@ Duplexify.prototype._destroy = function(err) {
     if (this._writable && this._writable.destroy) this._writable.destroy()
   }
 
-  this.emit('close')
+  cb(err)
 }
 
 Duplexify.prototype._write = function(data, enc, cb) {
