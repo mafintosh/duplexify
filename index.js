@@ -31,6 +31,8 @@ var end = function(ws, fn) {
   fn()
 }
 
+var noop = function() {}
+
 var toStreams2 = function(rs) {
   return new (stream.Readable)({objectMode:true, highWaterMark:16}).wrap(rs)
 }
@@ -173,13 +175,15 @@ Duplexify.prototype._forward = function() {
   this._forwarding = false
 }
 
-Duplexify.prototype.destroy = function(err) {
-  if (this.destroyed) return
+Duplexify.prototype.destroy = function(err, cb) {
+  if (!cb) cb = noop
+  if (this.destroyed) return cb(null)
   this.destroyed = true
 
   var self = this
   process.nextTick(function() {
     self._destroy(err)
+    cb(null)
   })
 }
 
