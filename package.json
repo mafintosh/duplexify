@@ -35,5 +35,8 @@
   "bugs": {
     "url": "https://github.com/mafintosh/duplexify/issues"
   },
-  "homepage": "https://github.com/mafintosh/duplexify"
+  "homepage": "https://github.com/mafintosh/duplexify",
+  "files": [
+    "index.js"
+  ]
 }
