@@ -137,6 +137,7 @@ tape('destroy', function(t) {
 
   dup.destroy()
   dup.destroy() // should only work once
+  dup.end()
 })
 
 tape('destroy both', function(t) {

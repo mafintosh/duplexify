@@ -231,7 +231,7 @@ Duplexify.prototype.end = function(data, enc, cb) {
   if (typeof enc === 'function') return this.end(data, null, enc)
   this._ended = true
   if (data) this.write(data)
-  if (!this._writableState.ending) this.write(SIGNAL_FLUSH)
+  if (!this._writableState.ending && !this._writableState.destroyed) this.write(SIGNAL_FLUSH)
   return stream.Writable.prototype.end.call(this, cb)
 }
 
