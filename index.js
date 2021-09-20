@@ -1,6 +1,5 @@
 var stream = require('readable-stream')
 var eos = require('end-of-stream')
-var inherits = require('inherits')
 var shift = require('stream-shift')
 
 var SIGNAL_FLUSH = (Buffer.from && Buffer.from !== Uint8Array.from)
