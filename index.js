@@ -163,8 +163,7 @@ class Duplexing extends stream.Duplex {
     this._forwarding = false
   }
 
-  destroy (err, cb) {
-    if (!cb) { cb = noop }
+  destroy (err, cb = noop) {
     if (this.destroyed) { return cb(null) }
     this.destroyed = true
 
@@ -221,8 +220,7 @@ class Duplexing extends stream.Duplex {
     return stream.Writable.prototype.end.call(this, cb)
   }
 
-  static obj (writable, readable, opts) {
-    if (!opts) { opts = {} }
+  static obj (writable, readable, opts = {}) {
     opts.objectMode = true
     opts.highWaterMark = 16
     return new Duplexing(writable, readable, opts)
