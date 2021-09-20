@@ -1,26 +1,26 @@
-var stream = require('readable-stream')
-var eos = require('end-of-stream')
-var shift = require('stream-shift')
+const stream = require('readable-stream')
+const eos = require('end-of-stream')
+const shift = require('stream-shift')
 
-var SIGNAL_FLUSH = Buffer.from([0])
+const SIGNAL_FLUSH = Buffer.from([0])
 
-var onuncork = function(self, fn) {
+const onuncork = function (self, fn) {
   if (self._corked) self.once('uncork', fn)
   else fn()
 }
 
-var autoDestroy = function (self, err) {
+const autoDestroy = function (self, err) {
   if (self._autoDestroy) self.destroy(err)
 }
 
-var destroyer = function(self, end) {
-  return function(err) {
+const destroyer = function (self, end) {
+  return function (err) {
     if (err) autoDestroy(self, err.message === 'premature close' ? null : err)
     else if (end && !self._ended) self.end()
   }
 }
 
-var end = function(ws, fn) {
+const end = function (ws, fn) {
   if (!ws) return fn()
   if (ws._writableState && ws._writableState.finished) return fn()
   if (ws._writableState) return ws.end(fn)
@@ -28,10 +28,10 @@ var end = function(ws, fn) {
   fn()
 }
 
-var noop = function() {}
+const noop = function () {}
 
-var toStreams2 = function(rs) {
-  return new (stream.Readable)({objectMode:true, highWaterMark:16}).wrap(rs)
+const toStreams2 = function (rs) {
+  return new stream.Readable({ objectMode: true, highWaterMark: 16 }).wrap(rs)
 }
 
 class Duplexing extends stream.Duplex {
@@ -55,26 +55,23 @@ class Duplexing extends stream.Duplex {
 
     this.destroyed = false
 
-    if (writable)
-      this.setWritable(writable)
-    if (readable)
-      this.setReadable(readable)
+    if (writable) { this.setWritable(writable) }
+    if (readable) { this.setReadable(readable) }
   }
-  cork() {
-    if (++this._corked === 1)
-      this.emit('cork')
+
+  cork () {
+    if (++this._corked === 1) { this.emit('cork') }
   }
-  uncork() {
-    if (this._corked && --this._corked === 0)
-      this.emit('uncork')
+
+  uncork () {
+    if (this._corked && --this._corked === 0) { this.emit('uncork') }
   }
-  setWritable(writable) {
-    if (this._unwrite)
-      this._unwrite()
+
+  setWritable (writable) {
+    if (this._unwrite) { this._unwrite() }
 
     if (this.destroyed) {
-      if (writable && writable.destroy)
-        writable.destroy()
+      if (writable && writable.destroy) { writable.destroy() }
       return
     }
 
@@ -83,23 +80,21 @@ class Duplexing extends stream.Duplex {
       return
     }
 
-    var self = this
-    var unend = eos(writable, { writable: true, readable: false }, destroyer(this, this._forwardEnd))
+    const self = this
+    const unend = eos(writable, { writable: true, readable: false }, destroyer(this, this._forwardEnd))
 
-    var ondrain = function () {
-      var ondrain = self._ondrain
+    const ondrain = function () {
+      const ondrain = self._ondrain
       self._ondrain = null
-      if (ondrain)
-        ondrain()
+      if (ondrain) { ondrain() }
     }
 
-    var clear = function () {
+    const clear = function () {
       self._writable.removeListener('drain', ondrain)
       unend()
     }
 
-    if (this._unwrite)
-      process.nextTick(ondrain) // force a drain on stream reset to avoid livelocks
+    if (this._unwrite) { process.nextTick(ondrain) } // force a drain on stream reset to avoid livelocks
 
     this._writable = writable
     this._writable.on('drain', ondrain)
@@ -107,13 +102,12 @@ class Duplexing extends stream.Duplex {
 
     this.uncork() // always uncork setWritable
   }
-  setReadable(readable) {
-    if (this._unread)
-      this._unread()
+
+  setReadable (readable) {
+    if (this._unread) { this._unread() }
 
     if (this.destroyed) {
-      if (readable && readable.destroy)
-        readable.destroy()
+      if (readable && readable.destroy) { readable.destroy() }
       return
     }
 
@@ -123,18 +117,18 @@ class Duplexing extends stream.Duplex {
       return
     }
 
-    var self = this
-    var unend = eos(readable, { writable: false, readable: true }, destroyer(this))
+    const self = this
+    const unend = eos(readable, { writable: false, readable: true }, destroyer(this))
 
-    var onreadable = function () {
+    const onreadable = function () {
       self._forward()
     }
 
-    var onend = function () {
+    const onend = function () {
       self.push(null)
     }
 
-    var clear = function () {
+    const clear = function () {
       self._readable2.removeListener('readable', onreadable)
       self._readable2.removeListener('end', onend)
       unend()
@@ -149,102 +143,86 @@ class Duplexing extends stream.Duplex {
 
     this._forward()
   }
-  _read() {
+
+  _read () {
     this._drained = true
     this._forward()
   }
-  _forward() {
-    if (this._forwarding || !this._readable2 || !this._drained)
-      return
+
+  _forward () {
+    if (this._forwarding || !this._readable2 || !this._drained) { return }
     this._forwarding = true
 
-    var data
+    let data
 
     while (this._drained && (data = shift(this._readable2)) !== null) {
-      if (this.destroyed)
-        continue
+      if (this.destroyed) { continue }
       this._drained = this.push(data)
     }
 
     this._forwarding = false
   }
-  destroy(err, cb) {
-    if (!cb)
-      cb = noop
-    if (this.destroyed)
-      return cb(null)
+
+  destroy (err, cb) {
+    if (!cb) { cb = noop }
+    if (this.destroyed) { return cb(null) }
     this.destroyed = true
 
-    var self = this
+    const self = this
     process.nextTick(function () {
       self._destroy(err)
       cb(null)
     })
   }
-  _destroy(err) {
+
+  _destroy (err) {
     if (err) {
-      var ondrain = this._ondrain
+      const ondrain = this._ondrain
       this._ondrain = null
-      if (ondrain)
-        ondrain(err)
-      else
-        this.emit('error', err)
+      if (ondrain) { ondrain(err) } else { this.emit('error', err) }
     }
 
     if (this._forwardDestroy) {
-      if (this._readable && this._readable.destroy)
-        this._readable.destroy()
-      if (this._writable && this._writable.destroy)
-        this._writable.destroy()
+      if (this._readable && this._readable.destroy) { this._readable.destroy() }
+      if (this._writable && this._writable.destroy) { this._writable.destroy() }
     }
 
     this.emit('close')
   }
-  _write(data, enc, cb) {
-    if (this.destroyed)
-      return
-    if (this._corked)
-      return onuncork(this, this._write.bind(this, data, enc, cb))
-    if (data === SIGNAL_FLUSH)
-      return this._finish(cb)
-    if (!this._writable)
-      return cb()
 
-    if (this._writable.write(data) === false)
-      this._ondrain = cb
-    else if (!this.destroyed)
-      cb()
+  _write (data, enc, cb) {
+    if (this.destroyed) { return }
+    if (this._corked) { return onuncork(this, this._write.bind(this, data, enc, cb)) }
+    if (data === SIGNAL_FLUSH) { return this._finish(cb) }
+    if (!this._writable) { return cb() }
+
+    if (this._writable.write(data) === false) { this._ondrain = cb } else if (!this.destroyed) { cb() }
   }
-  _finish(cb) {
-    var self = this
+
+  _finish (cb) {
+    const self = this
     this.emit('preend')
     onuncork(this, function () {
       end(self._forwardEnd && self._writable, function () {
         // haxx to not emit prefinish twice
-        if (self._writableState.prefinished === false)
-          self._writableState.prefinished = true
+        if (self._writableState.prefinished === false) { self._writableState.prefinished = true }
         self.emit('prefinish')
         onuncork(self, cb)
       })
     })
   }
 
-  end(data, enc, cb) {
-    if (typeof data === 'function')
-      return this.end(null, null, data)
-    if (typeof enc === 'function')
-      return this.end(data, null, enc)
+  end (data, enc, cb) {
+    if (typeof data === 'function') { return this.end(null, null, data) }
+    if (typeof enc === 'function') { return this.end(data, null, enc) }
     this._ended = true
-    if (data)
-      this.write(data)
-    if (!this._writableState.ending && !this._writableState.destroyed)
-      this.write(SIGNAL_FLUSH)
+    if (data) { this.write(data) }
+    if (!this._writableState.ending && !this._writableState.destroyed) { this.write(SIGNAL_FLUSH) }
     return stream.Writable.prototype.end.call(this, cb)
   }
 
-  static obj(writable, readable, opts) {
-    if (!opts)
-      opts = {}
+  static obj (writable, readable, opts) {
+    if (!opts) { opts = {} }
     opts.objectMode = true
     opts.highWaterMark = 16
     return new Duplexing(writable, readable, opts)
@@ -255,6 +233,6 @@ class Duplexing extends stream.Duplex {
 // For backward compatibility
 module.exports = new Proxy(Duplexing, {
   apply (target, thisArg, argumentsList) {
-    return new target(...argumentsList);
+    return new target(...argumentsList)
   }
 })
