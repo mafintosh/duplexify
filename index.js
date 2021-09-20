@@ -28,8 +28,6 @@ const end = function (ws, fn) {
   fn()
 }
 
-const noop = function () {}
-
 const toStreams2 = function (rs) {
   return new Readable({ objectMode: true, highWaterMark: 16 }).wrap(rs)
 }
@@ -163,14 +161,14 @@ class Duplexing extends Duplex {
     this._forwarding = false
   }
 
-  destroy (err, cb = noop) {
-    if (this.destroyed) { return cb(null) }
+  destroy (err, cb) {
+    if (this.destroyed) { return cb && cb(null) }
     this.destroyed = true
 
     const self = this
     process.nextTick(function () {
       self._destroy(err)
-      cb(null)
+      cb && cb(null)
     })
   }
 
