@@ -251,4 +251,10 @@ class Duplexing extends stream.Duplex {
   }
 }
 
-module.exports = Duplexify
+// Use proxy to call class constructor without new keyword
+// For backward compatibility
+module.exports = new Proxy(Duplexing, {
+  apply (target, thisArg, argumentsList) {
+    return new target(...argumentsList);
+  }
+})
