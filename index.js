@@ -4,23 +4,23 @@ const shift = require('stream-shift')
 
 const SIGNAL_FLUSH = Buffer.from([0])
 
-const onuncork = function (ctx, fn) {
+function onuncork (ctx, fn) {
   if (ctx._corked) ctx.once('uncork', fn)
   else fn()
 }
 
-const autoDestroy = function (ctx, err) {
+function autoDestroy (ctx, err) {
   if (ctx._autoDestroy) ctx.destroy(err)
 }
 
-const destroyer = function (ctx, end) {
+function destroyer (ctx, end) {
   return function (err) {
     if (err) autoDestroy(ctx, err.message === 'premature close' ? null : err)
     else if (end && !ctx._ended) ctx.end()
   }
 }
 
-const end = function (ws, fn) {
+function end (ws, fn) {
   if (!ws) return fn()
   if (ws._writableState && ws._writableState.finished) return fn()
   if (ws._writableState) return ws.end(fn)
@@ -28,7 +28,8 @@ const end = function (ws, fn) {
   fn()
 }
 
-const toStreams2 = function (rs) {
+/** @param {Readable} rs */
+function toStreams2 (rs) {
   return new Readable({ objectMode: true, highWaterMark: 16 }).wrap(rs)
 }
 
@@ -230,7 +231,7 @@ class Duplexing extends Duplex {
 // Use proxy to call class constructor without new keyword
 // For backward compatibility
 module.exports = new Proxy(Duplexing, {
-  apply (target, thisArg, argumentsList) {
-    return new target(...argumentsList)
+  apply (Target, thisArg, argumentsList) {
+    return new Target(...argumentsList)
   }
 })
