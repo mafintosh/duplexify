@@ -1,7 +1,7 @@
 var tape = require('tape')
 var through = require('through2')
 var concat = require('concat-stream')
-var stream = require('readable-stream')
+var stream = require('stream')
 var net = require('net')
 var duplexify = require('./')
 

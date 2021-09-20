@@ -5,7 +5,6 @@
   "main": "index.js",
   "dependencies": {
     "end-of-stream": "^1.4.4",
-    "readable-stream": "^3.6.0",
     "stream-shift": "^1.0.1"
   },
   "devDependencies": {
