@@ -1,4 +1,4 @@
-const stream = require('readable-stream')
+const { Duplex, Readable, Writable } = require('readable-stream')
 const eos = require('end-of-stream')
 const shift = require('stream-shift')
 
@@ -31,10 +31,10 @@ const end = function (ws, fn) {
 const noop = function () {}
 
 const toStreams2 = function (rs) {
-  return new stream.Readable({ objectMode: true, highWaterMark: 16 }).wrap(rs)
+  return new Readable({ objectMode: true, highWaterMark: 16 }).wrap(rs)
 }
 
-class Duplexing extends stream.Duplex {
+class Duplexing extends Duplex {
   constructor (writable, readable, opts) {
     super(opts)
 
@@ -217,7 +217,7 @@ class Duplexing extends stream.Duplex {
     this._ended = true
     if (data) { this.write(data) }
     if (!this._writableState.ending && !this._writableState.destroyed) { this.write(SIGNAL_FLUSH) }
-    return stream.Writable.prototype.end.call(this, cb)
+    return Writable.prototype.end.call(this, cb)
   }
 
   static obj (writable, readable, opts = {}) {
