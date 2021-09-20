@@ -1,4 +1,5 @@
 const { Duplex, Readable, Writable } = require('stream')
+const { Buffer } = require('buffer')
 const eos = require('end-of-stream')
 const shift = require('stream-shift')
 
