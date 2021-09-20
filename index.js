@@ -4,19 +4,19 @@ const shift = require('stream-shift')
 
 const SIGNAL_FLUSH = Buffer.from([0])
 
-const onuncork = function (self, fn) {
-  if (self._corked) self.once('uncork', fn)
+const onuncork = function (ctx, fn) {
+  if (ctx._corked) ctx.once('uncork', fn)
   else fn()
 }
 
-const autoDestroy = function (self, err) {
-  if (self._autoDestroy) self.destroy(err)
+const autoDestroy = function (ctx, err) {
+  if (ctx._autoDestroy) ctx.destroy(err)
 }
 
-const destroyer = function (self, end) {
+const destroyer = function (ctx, end) {
   return function (err) {
-    if (err) autoDestroy(self, err.message === 'premature close' ? null : err)
-    else if (end && !self._ended) self.end()
+    if (err) autoDestroy(ctx, err.message === 'premature close' ? null : err)
+    else if (end && !ctx._ended) ctx.end()
   }
 }
 
@@ -78,17 +78,16 @@ class Duplexing extends Duplex {
       return
     }
 
-    const self = this
     const unend = eos(writable, { writable: true, readable: false }, destroyer(this, this._forwardEnd))
 
-    const ondrain = function () {
-      const ondrain = self._ondrain
-      self._ondrain = null
+    const ondrain = () => {
+      const ondrain = this._ondrain
+      this._ondrain = null
       if (ondrain) { ondrain() }
     }
 
-    const clear = function () {
-      self._writable.removeListener('drain', ondrain)
+    const clear = () => {
+      this._writable.removeListener('drain', ondrain)
       unend()
     }
 
@@ -115,20 +114,22 @@ class Duplexing extends Duplex {
       return
     }
 
-    const self = this
-    const unend = eos(readable, { writable: false, readable: true }, destroyer(this))
+    const unend = eos(readable, {
+      writable: false,
+      readable: true
+    }, destroyer(this))
 
-    const onreadable = function () {
-      self._forward()
+    const onreadable = () => {
+      this._forward()
     }
 
-    const onend = function () {
-      self.push(null)
+    const onend = () => {
+      this.push(null)
     }
 
-    const clear = function () {
-      self._readable2.removeListener('readable', onreadable)
-      self._readable2.removeListener('end', onend)
+    const clear = () => {
+      this._readable2.removeListener('readable', onreadable)
+      this._readable2.removeListener('end', onend)
       unend()
     }
 
@@ -165,9 +166,8 @@ class Duplexing extends Duplex {
     if (this.destroyed) { return cb && cb(null) }
     this.destroyed = true
 
-    const self = this
-    process.nextTick(function () {
-      self._destroy(err)
+    process.nextTick(() => {
+      this._destroy(err)
       cb && cb(null)
     })
   }
@@ -197,14 +197,16 @@ class Duplexing extends Duplex {
   }
 
   _finish (cb) {
-    const self = this
     this.emit('preend')
-    onuncork(this, function () {
-      end(self._forwardEnd && self._writable, function () {
+
+    onuncork(this, () => {
+      end(this._forwardEnd && this._writable, () => {
         // haxx to not emit prefinish twice
-        if (self._writableState.prefinished === false) { self._writableState.prefinished = true }
-        self.emit('prefinish')
-        onuncork(self, cb)
+        if (this._writableState.prefinished === false) {
+          this._writableState.prefinished = true
+        }
+        this.emit('prefinish')
+        onuncork(this, cb)
       })
     })
   }
