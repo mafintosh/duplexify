@@ -1,17 +1,17 @@
-var duplexify = require('duplexify')
-var http = require('http')
+const duplexify = require('duplexify')
+const http = require('http')
 
-var request = function(opts) {
-  var req = http.request(opts)
-  var dup = duplexify()
+const request = function (opts) {
+  const req = http.request(opts)
+  const dup = duplexify()
   dup.setWritable(req)
-  req.on('response', function(res) {
+  req.on('response', function (res) {
     dup.setReadable(res)
   })
   return dup
 }
 
-var req = request({
+const req = request({
   method: 'GET',
   host: 'www.google.com',
   port: 80
