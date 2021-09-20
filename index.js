@@ -28,7 +28,6 @@ function end (ws, fn) {
   fn()
 }
 
-/** @param {Readable} rs */
 function toStreams2 (rs) {
   return new Readable({ objectMode: true, highWaterMark: 16 }).wrap(rs)
 }
@@ -67,10 +66,14 @@ class Duplexing extends Duplex {
   }
 
   setWritable (writable) {
-    if (this._unwrite) { this._unwrite() }
+    if (this._unwrite) {
+      this._unwrite()
+    }
 
     if (this.destroyed) {
-      if (writable && writable.destroy) { writable.destroy() }
+      if (writable && writable.destroy) {
+        writable.destroy()
+      }
       return
     }
 
@@ -79,7 +82,10 @@ class Duplexing extends Duplex {
       return
     }
 
-    const unend = eos(writable, { writable: true, readable: false }, destroyer(this, this._forwardEnd))
+    const unend = eos(writable, {
+      writable: true,
+      readable: false
+    }, destroyer(this, this._forwardEnd))
 
     const ondrain = () => {
       const ondrain = this._ondrain
@@ -92,7 +98,10 @@ class Duplexing extends Duplex {
       unend()
     }
 
-    if (this._unwrite) { process.nextTick(ondrain) } // force a drain on stream reset to avoid livelocks
+    if (this._unwrite) {
+      // force a drain on stream reset to avoid livelocks
+      process.nextTick(ondrain)
+    }
 
     this._writable = writable
     this._writable.on('drain', ondrain)
@@ -105,7 +114,9 @@ class Duplexing extends Duplex {
     if (this._unread) { this._unread() }
 
     if (this.destroyed) {
-      if (readable && readable.destroy) { readable.destroy() }
+      if (readable && readable.destroy) {
+        readable.destroy()
+      }
       return
     }
 
@@ -136,7 +147,9 @@ class Duplexing extends Duplex {
 
     this._drained = true
     this._readable = readable
-    this._readable2 = readable._readableState ? readable : toStreams2(readable)
+    this._readable2 = readable._readableState
+      ? readable
+      : toStreams2(readable)
     this._readable2.on('readable', onreadable)
     this._readable2.on('end', onend)
     this._unread = clear
@@ -150,7 +163,10 @@ class Duplexing extends Duplex {
   }
 
   _forward () {
-    if (this._forwarding || !this._readable2 || !this._drained) { return }
+    if (this._forwarding || !this._readable2 || !this._drained) {
+      return
+    }
+
     this._forwarding = true
 
     let data
@@ -164,7 +180,10 @@ class Duplexing extends Duplex {
   }
 
   destroy (err, cb) {
-    if (this.destroyed) { return cb && cb(null) }
+    if (this.destroyed) {
+      return cb && cb(null)
+    }
+
     this.destroyed = true
 
     process.nextTick(() => {
@@ -177,12 +196,18 @@ class Duplexing extends Duplex {
     if (err) {
       const ondrain = this._ondrain
       this._ondrain = null
+
       if (ondrain) { ondrain(err) } else { this.emit('error', err) }
     }
 
     if (this._forwardDestroy) {
-      if (this._readable && this._readable.destroy) { this._readable.destroy() }
-      if (this._writable && this._writable.destroy) { this._writable.destroy() }
+      if (this._readable && this._readable.destroy) {
+        this._readable.destroy()
+      }
+
+      if (this._writable && this._writable.destroy) {
+        this._writable.destroy()
+      }
     }
 
     this.emit('close')
@@ -190,11 +215,22 @@ class Duplexing extends Duplex {
 
   _write (data, enc, cb) {
     if (this.destroyed) { return }
-    if (this._corked) { return onuncork(this, this._write.bind(this, data, enc, cb)) }
-    if (data === SIGNAL_FLUSH) { return this._finish(cb) }
-    if (!this._writable) { return cb() }
+    if (this._corked) {
+      return onuncork(this, this._write.bind(this, data, enc, cb))
+    }
+    if (data === SIGNAL_FLUSH) {
+      return this._finish(cb)
+    }
 
-    if (this._writable.write(data) === false) { this._ondrain = cb } else if (!this.destroyed) { cb() }
+    if (!this._writable) {
+      return cb()
+    }
+
+    if (this._writable.write(data) === false) {
+      this._ondrain = cb
+    } else if (!this.destroyed) {
+      cb()
+    }
   }
 
   _finish (cb) {
@@ -213,11 +249,17 @@ class Duplexing extends Duplex {
   }
 
   end (data, enc, cb) {
-    if (typeof data === 'function') { return this.end(null, null, data) }
-    if (typeof enc === 'function') { return this.end(data, null, enc) }
+    if (typeof data === 'function') return this.end(null, null, data)
+    if (typeof enc === 'function') return this.end(data, null, enc)
+
     this._ended = true
-    if (data) { this.write(data) }
-    if (!this._writableState.ending && !this._writableState.destroyed) { this.write(SIGNAL_FLUSH) }
+
+    if (data) this.write(data)
+
+    if (!this._writableState.ending && !this._writableState.destroyed) {
+      this.write(SIGNAL_FLUSH)
+    }
+
     return Writable.prototype.end.call(this, cb)
   }
 
